@@ -1,6 +1,7 @@
 import QtQuick 2.15
 import QtQuick.Window 2.15
 import QtQuick.Controls 2.0
+import QtPositioning 5.15
 
 
 ApplicationWindow {
@@ -8,15 +9,96 @@ ApplicationWindow {
     height: 480
     visible: true
     title: qsTr("Hello World")
+    background: Rectangle{
+        anchors.fill: parent
+        color: "#C3C3D1"
+    }
 
+    PositionSource {
+        id: src
+        updateInterval: 200
+        active: true
+        //valid: true
+        Component.onCompleted: {
+            src.start()
+            src.update()
+            var supPos  = "Unknown"
+            if (src.supportedPositioningMethods == PositionSource.NoPositioningMethods) {
+                supPos = "NoPositioningMethods"
+                locationPopup.open()
+                // locationService.gotoAndroidLocationSettings()
+            } else if (src.supportedPositioningMethods == PositionSource.AllPositioningMethods) {
+                supPos = "AllPositioningMethods"
+                locationPopup.close()
+            } else if (src.supportedPositioningMethods == PositionSource.SatellitePositioningMethods) {
+                supPos = "SatellitePositioningMethods"
+                locationPopup.close()
+            } else if (src.supportedPositioningMethods == PositionSource.NonSatellitePositioningMethods) {
+                supPos = "NonSatellitePositioningMethods"
+                locationPopup.close()
+            }
+
+            console.log("Position Source Loaded || Supported: "+supPos+" Valid: "+valid);
+        }
+
+        onPositionChanged: {
+            var coord = src.position.coordinate;
+            console.log("Coordinate:", coord.latitude, coord.longitude);
+        }
+    }
+    Popup{
+        id:locationPopup
+        width: 300
+        height: 300
+        anchors.centerIn: parent
+        Button{
+            id:buttonLocationSettings1
+            width: parent.width-32
+            height: 60
+            anchors.centerIn: parent
+            Text {
+                id: buttonText
+                text: qsTr("Open Location Settings")
+                color: "white"
+                font.family: "Comic Sans"
+                anchors.centerIn: parent
+            }
+            background: Rectangle{
+                anchors.fill: parent
+                color: "#E3C9DB"
+                radius: 5
+            }
+            onClicked: {
+                if(locationService.active == false)
+                    locationService.gotoAndroidLocationSettings();
+            }
+
+        }
+        Button{
+            id:close
+            width: 30
+            height: 30
+            anchors.top: parent.top
+            anchors.right: parent.right
+            onClicked: locationPopup.close()
+            Text {
+                id: closeText
+                text: qsTr("X")
+                color: "black"
+                anchors.centerIn: parent
+            }
+        }
+
+
+    }
 
     Button{
         id:buttonLocationSettings
         width: parent.width/2
-        height: 40
+        height: 60
         anchors.centerIn: parent
         Text {
-            id: buttonText
+            id: buttonText2
             text: qsTr("Open Location Settings")
             color: "white"
             font.family: "Comic Sans"
@@ -24,18 +106,18 @@ ApplicationWindow {
         }
         background: Rectangle{
             anchors.fill: parent
-            color: "#61276F"
+            color: "#E3C9DB"
             radius: 5
         }
         onClicked: {
             if(locationService.active == false)
-             locationService.gotoAndroidLocationSettings();
+                locationService.gotoAndroidLocationSettings();
         }
     }
     Button{
         id: buttonSettings
         width: parent.width/2
-        height: 40
+        height: 60
         anchors.top:buttonLocationSettings.bottom
         anchors.topMargin: 16
         anchors.horizontalCenter: parent.horizontalCenter
@@ -48,12 +130,12 @@ ApplicationWindow {
         }
         background: Rectangle{
             anchors.fill: parent
-            color: "#61276F"
+            color: "#E3C9DB"
             radius: 5
         }
         onClicked: {
             if(locationService.active == false)
-             locationService.gotoAndroidSettings();
+                locationService.gotoAndroidSettings();
         }
     }
 }
