@@ -6,13 +6,14 @@
 #include <QQmlContext>
 
 #include "location_service_controller.h"
+#include "geoposition.h"
 
 int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
 
     QGuiApplication app(argc, argv);
-    //qmlRegisterType<LocationService>("LocationService", 1, 0, "LocationService");
+  //  qmlRegisterType<Geoposition>("Geoposition", 1, 0, "Geoposition");
 
 
 

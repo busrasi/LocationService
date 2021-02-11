@@ -5,6 +5,7 @@ import QtPositioning 5.15
 
 
 ApplicationWindow {
+    id:root
     width: 640
     height: 480
     visible: true
@@ -13,12 +14,19 @@ ApplicationWindow {
         anchors.fill: parent
         color: "#C3C3D1"
     }
-
+     Loader { id: loader }
+    property alias pSrc: src
+    onFocusObjectChanged: locationPopup.close()
     PositionSource {
         id: src
-        updateInterval: 200
+        updateInterval: 100
         active: true
-        //valid: true
+
+        onValidChanged: {
+            console.log("BSR: CURRENT VALID",src.valid)
+        }
+        onActiveChanged: console.log("BSR: CURRENT Active",src.active)
+
         Component.onCompleted: {
             src.start()
             src.update()
@@ -26,6 +34,7 @@ ApplicationWindow {
             if (src.supportedPositioningMethods == PositionSource.NoPositioningMethods) {
                 supPos = "NoPositioningMethods"
                 locationPopup.open()
+                src.start()
                 // locationService.gotoAndroidLocationSettings()
             } else if (src.supportedPositioningMethods == PositionSource.AllPositioningMethods) {
                 supPos = "AllPositioningMethods"
@@ -51,6 +60,8 @@ ApplicationWindow {
         width: 300
         height: 300
         anchors.centerIn: parent
+        closePolicy: Popup.CloseOnPressOutsideParent
+
         Button{
             id:buttonLocationSettings1
             width: parent.width-32
@@ -71,8 +82,16 @@ ApplicationWindow {
             onClicked: {
                 if(locationService.active == false)
                     locationService.gotoAndroidLocationSettings();
-            }
 
+            }
+            Component.onCompleted: {
+                if(pSrc.active === true){
+                    locationPopup.close()
+                }
+                if(pSrc.active === false){
+                    locationPopup.open()
+                }
+            }
         }
         Button{
             id:close
@@ -88,8 +107,6 @@ ApplicationWindow {
                 anchors.centerIn: parent
             }
         }
-
-
     }
 
     Button{

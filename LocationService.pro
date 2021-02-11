@@ -10,10 +10,9 @@ SOURCES += \
         "main.cpp"  \
         "location_service_controller.cpp" \
 
+
 HEADERS += \
-"location_service_controller.h"
-
-
+        "location_service_controller.h" \
 
 
 RESOURCES += qml.qrc
@@ -29,7 +28,7 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-ANDROID_ABIS = x86
+ANDROID_ABIS = arm64-v8a
 
 DISTFILES += \
     android/AndroidManifest.xml \
