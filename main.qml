@@ -10,20 +10,40 @@ ApplicationWindow {
     height: 480
     visible: true
     title: qsTr("Hello World")
+
+    property var appState: Qt.application.state
+
+
+
+    onAppStateChanged:{
+        gpsStateChecker()
+    }
+
     background: Rectangle{
         anchors.fill: parent
         color: "#C3C3D1"
+
     }
-     Loader { id: loader }
+
+    onActiveChanged: {
+        console.log("BSR: onActiveChanged", active)
+        if( appState === Qt.application.active){
+            getStateChecker()
+            console.log("BSR: onActiveChanged", active)
+        }
+    }
+
     property alias pSrc: src
-    onFocusObjectChanged: locationPopup.close()
+    property var myError
+
+    // onFocusObjectChanged: locationPopup.close()
     PositionSource {
         id: src
         updateInterval: 100
         active: true
 
-        onValidChanged: {
-            console.log("BSR: CURRENT VALID",src.valid)
+        onSourceErrorChanged:{
+            myError = sourceError;
         }
         onActiveChanged: console.log("BSR: CURRENT Active",src.active)
 
@@ -33,18 +53,12 @@ ApplicationWindow {
             var supPos  = "Unknown"
             if (src.supportedPositioningMethods == PositionSource.NoPositioningMethods) {
                 supPos = "NoPositioningMethods"
-                locationPopup.open()
-                src.start()
-                // locationService.gotoAndroidLocationSettings()
             } else if (src.supportedPositioningMethods == PositionSource.AllPositioningMethods) {
                 supPos = "AllPositioningMethods"
-                locationPopup.close()
             } else if (src.supportedPositioningMethods == PositionSource.SatellitePositioningMethods) {
                 supPos = "SatellitePositioningMethods"
-                locationPopup.close()
             } else if (src.supportedPositioningMethods == PositionSource.NonSatellitePositioningMethods) {
                 supPos = "NonSatellitePositioningMethods"
-                locationPopup.close()
             }
 
             console.log("Position Source Loaded || Supported: "+supPos+" Valid: "+valid);
@@ -55,12 +69,64 @@ ApplicationWindow {
             console.log("Coordinate:", coord.latitude, coord.longitude);
         }
     }
+
+    Connections{
+        target: src
+        function onValidChanged(){
+            console.log("BSR: CURRENT VALID",src.valid)
+        }
+    }
+
+    function gpsStateChecker() {
+        console.log("BSR:: SOURCE ERROR","PositionSource.NoError")
+       // src.stop()
+       // src.start()
+        if(myError === PositionSource.ClosedError ){
+
+            if(src.supportedPositioningMethods === PositionSource.NoPositioningMethods){
+                locationPopup.open()
+                console.log("BSR:: Closed ERROR","PositionSource.ClosedError")
+            }
+            else {
+                locationPopup.close()
+                console.log("BSR:: Closed ERROR active true","PositionSource.ClosedError")
+            }
+        }
+
+        else if(myError === PositionSource.NoError){
+            locationPopup.close()
+            console.log("BSR:: No ERROR","PositionSource.NoError")
+        }
+        else if(myError === PositionSource.AccessError){
+            locationPopup.open()
+            console.log("BSR:: AccessERROR","PositionSource.AccessError")
+        }
+        else if(myError === PositionSource.UnknownSourceError){
+            //locationPopup.open()
+            if(src.supportedPositioningMethods === PositionSource.NoPositioningMethods){
+                locationPopup.open()
+                console.log("BSR:: UnknownSourceError noposition","PositionSource.UnknownSourceError")
+            }
+            else {
+                locationPopup.close()
+                console.log("BSR:: UnknownSourceError","PositionSource.UnknownSourceError")
+            }
+            console.log("BSR:: UnknownSourceError","PositionSource.UnknownSourceError")
+        }
+        else if(myError === PositionSource.SocketError){
+            locationPopup.open()
+            console.log("BSR:: SocketError","PositionSource.SocketError")
+        }
+        else {
+            // locationPopup.close()
+            console.log("BSR:: ERROR else")
+        }
+    }
     Popup{
         id:locationPopup
         width: 300
         height: 300
         anchors.centerIn: parent
-        closePolicy: Popup.CloseOnPressOutsideParent
 
         Button{
             id:buttonLocationSettings1
@@ -85,12 +151,7 @@ ApplicationWindow {
 
             }
             Component.onCompleted: {
-                if(pSrc.active === true){
-                    locationPopup.close()
-                }
-                if(pSrc.active === false){
-                    locationPopup.open()
-                }
+                locationPopup.close()
             }
         }
         Button{
@@ -154,5 +215,8 @@ ApplicationWindow {
             if(locationService.active == false)
                 locationService.gotoAndroidSettings();
         }
+    }
+    Component.onCompleted: {
+        locationPopup.close()
     }
 }
