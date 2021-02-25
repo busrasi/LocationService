@@ -1,1 +1,4 @@
 LocationService
+---Components---
+ApplicationStates
+PositionSource
